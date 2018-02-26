@@ -1,6 +1,6 @@
 ## Apache Flink Queryable State Demo
 
-This repository contains a short demo of Apache Flink's Queryable State feature. You can check out the [Flink documentation](https://ci.apache.org/projects/flink/flink-docs-release-1.2/dev/stream/queryable_state.html) for [more details about Queryable State](https://ci.apache.org/projects/flink/flink-docs-release-1.2/dev/stream/queryable_state.html).
+This repository contains a short demo of Apache Flink's Queryable State feature. You can check out the [Flink documentation](https://ci.apache.org/projects/flink/flink-docs-release-1.4/dev/stream/state/queryable_state.html) for [more details about Queryable State](https://ci.apache.org/projects/flink/flink-docs-release-1.4/dev/stream/state/queryable_state.html).
 
 ### Getting Started
 
@@ -13,7 +13,7 @@ This repository contains a short demo of Apache Flink's Queryable State feature.
 1. **Clone this repository.**
 
 ```bash
-$ git clone https://github.com/dataArtisans/flink-queryable_state_demo.git
+$ git clone https://github.com/alpinegizmo/flink-queryable_state_demo.git
 ```
 
 2. **Run the demo job.**
