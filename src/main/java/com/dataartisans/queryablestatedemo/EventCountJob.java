@@ -31,66 +31,61 @@ import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
 /**
  * A job generating {@link BumpEvent} instances and counting them.
- *
+ * <p>
  * <p>The generated events are keyed by their item ID and then counted. The
  * count is maintained via Flink's managed state as exposed for external
  * queries.
- *
+ * <p>
  * <p>Checkout the {@link EventCountClient} for the querying part.
  */
 public class EventCountJob {
 
-  /**
-   * External name for the state instance. The count can be queried under this name.
-   */
-  public final static String ITEM_COUNTS = "itemCounts";
+	/**
+	 * External name for the state instance. The count can be queried under this name.
+	 */
+	public final static String ITEM_COUNTS = "itemCounts";
 
-  public static void main(String[] args) throws Exception {
-    ParameterTool params = ParameterTool.fromArgs(args);
-    final boolean printThroughput = params.getBoolean("printThroughput", true);
-    final int port = params.getInt("port", 6124);
-    final int parallelism = params.getInt("parallelism", 4);
+	public static void main(String[] args) throws Exception {
+		ParameterTool params = ParameterTool.fromArgs(args);
+		final boolean printThroughput = params.getBoolean("printThroughput", true);
+		final int port = params.getInt("port", 6124);
+		final int parallelism = params.getInt("parallelism", 4);
 
-    // We use a mini cluster here for sake of simplicity, because I don't want
-    // to require a Flink installation to run this demo. Everything should be
-    // contained in this JAR.
+		// We use a mini cluster here for sake of simplicity, because I don't want
+		// to require a Flink installation to run this demo. Everything should be
+		// contained in this JAR.
 
-    Configuration config = new Configuration();
-    config.setInteger(ConfigConstants.JOB_MANAGER_IPC_PORT_KEY, port);
-    config.setInteger(ConfigConstants.LOCAL_NUMBER_TASK_MANAGER, 1);
-    config.setInteger(ConfigConstants.TASK_MANAGER_NUM_TASK_SLOTS, parallelism);
-    // In a non MiniCluster setup queryable state is enabled by default.
-    config.setBoolean(QueryableStateOptions.SERVER_ENABLE, true);
+		Configuration config = new Configuration();
+		config.setInteger(ConfigConstants.JOB_MANAGER_IPC_PORT_KEY, port);
+		config.setInteger(ConfigConstants.LOCAL_NUMBER_TASK_MANAGER, 1);
+		config.setInteger(ConfigConstants.TASK_MANAGER_NUM_TASK_SLOTS, parallelism);
 
-    FlinkMiniCluster flinkCluster = new LocalFlinkMiniCluster(config, false);
-    try {
-      flinkCluster.start(true);
+		FlinkMiniCluster flinkCluster = new LocalFlinkMiniCluster(config, false);
+		flinkCluster.start(true);
 
-      StreamExecutionEnvironment env = StreamExecutionEnvironment
-          .createRemoteEnvironment("localhost", port, parallelism);
+		StreamExecutionEnvironment env = StreamExecutionEnvironment
+				.createRemoteEnvironment("localhost", port, parallelism);
+		env.getConfig().enableSysoutLogging();
 
-      DataStream<BumpEvent> bumps = env
-          .addSource(new BumpEventGeneratorSource(printThroughput));
+		DataStream<BumpEvent> bumps = env
+				.addSource(new BumpEventGeneratorSource(printThroughput));
 
-      // Increment the count for each event (keyed on itemId)
-      FoldingStateDescriptor<BumpEvent, Long> countingState = new FoldingStateDescriptor<>(
-          ITEM_COUNTS,
-          0L,             // Initial value is 0
-          (acc, event) -> acc + 1L, // Increment for each event
-          Long.class);
+		// Increment the count for each event (keyed on itemId)
+		FoldingStateDescriptor<BumpEvent, Long> countingState = new FoldingStateDescriptor<>(
+				ITEM_COUNTS,
+				0L,             // Initial value is 0
+				(acc, event) -> acc + 1L, // Increment for each event
+				Long.class);
 
-      bumps.keyBy(BumpEvent::getItemId)
-          .asQueryableState(ITEM_COUNTS, countingState);
+		bumps.keyBy(BumpEvent::getItemId)
+				.asQueryableState(ITEM_COUNTS, countingState);
 
-      JobGraph jobGraph = env.getStreamGraph().getJobGraph();
+		JobGraph jobGraph = env.getStreamGraph().getJobGraph();
 
-      System.out.println("[info] Job ID: " + jobGraph.getJobID());
-      System.out.println();
+		System.out.println("[info] Job ID: " + jobGraph.getJobID());
+		System.out.println();
 
-      flinkCluster.submitJobAndWait(jobGraph, false);
-    } finally {
-      flinkCluster.shutdown();
-    }
-  }
+		flinkCluster.submitJobAndWait(jobGraph, false);
+	}
 
 }

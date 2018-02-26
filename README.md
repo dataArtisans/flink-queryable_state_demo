@@ -21,8 +21,8 @@ $ git clone https://github.com/dataArtisans/flink-queryable_state_demo.git
 ```bash
 % ./run-job.sh
 [info] Building demo JAR... this can take a few seconds.
-[info] Done. Demo JAR created in target/queryablestatedemo-1.0-SNAPSHOT.jar.
-[info] Executing EventCountJob from queryablestatedemo-1.0-SNAPSHOT.jar (exit via Control+C)
+[info] Done. Demo JAR created in target/queryablestatedemo-1.0.jar.
+[info] Executing EventCountJob from queryablestatedemo-1.0.jar (exit via Control+C)
 [info] Job ID: 2488a115d832013edbbd5a6599e49e45
 
 Generating 454435 elements per second
@@ -35,7 +35,7 @@ Generating 903855 elements per second
 ```bash
 ./run-query-repl.sh 2488a115d832013edbbd5a6599e49e45
 [info] Querying job with ID '2488a115d832013edbbd5a6599e49e45'
-[info] Executing EventCountClient from queryablestatedemo-1.0-SNAPSHOT.jar (exit via Control+C)
+[info] Executing EventCountClient from queryablestatedemo-1.0.jar (exit via Control+C)
 
 Using JobManager localhost:6124
 Enter a key to query.
