@@ -13,7 +13,7 @@ This repository contains a short demo of Apache Flink's Queryable State feature.
 1. **Clone this repository.**
 
 ```bash
-$ git clone https://github.com/alpinegizmo/flink-queryable_state_demo.git
+$ git clone https://github.com/dataArtisans/flink-queryable_state_demo.git
 ```
 
 2. **Run the demo job.**
