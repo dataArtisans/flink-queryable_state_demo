@@ -155,4 +155,4 @@ This means that the client takes care of all communication with the Flink applic
 
 As part of this demo, the `EventCountClient` takes care of setting up the types and submitting the queries. You only have to provide the JobID.
 
-You can use the included **`run-query-repl.sh` script** which takes care of building the client and executing it. It has the jobId of the running job as a required argument.
+You can use the included **`run-query-repl.sh` script** which takes care of building the client and executing it. It needs the jobId of the running job as a required argument.
