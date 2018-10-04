@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 base="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-target="$base/target/queryablestatedemo-1.0-SNAPSHOT.jar"
+target="$base/target/queryablestatedemo-1.0.jar"
 
 if [ ! -f $target ]; then
   echo "[info] Building demo JAR... this can take a few seconds"
@@ -11,7 +11,7 @@ if [ ! -f $target ]; then
 fi
 
 if [ -z $1 ]; then
-  echo "Usage: run-query-repl.sh <jobId> [jobManagerHost] [jobManagerPort]";
+  echo "Usage: run-query-repl.sh <jobId>";
   exit 1
 else
   jobId=$1
@@ -19,6 +19,6 @@ else
   echo "[info] Querying job with ID '$jobId'";
 fi
 
-echo "[info] Executing EventCountClient from queryablestatedemo-1.0-SNAPSHOT.jar (exit via Control+C)"
+echo "[info] Executing EventCountClient from queryablestatedemo-1.0.jar (exit via Control+C)"
 echo ""
 java -cp $target com.dataartisans.queryablestatedemo.EventCountClient $jobId

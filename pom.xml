@@ -23,7 +23,7 @@ under the License.
 
   <groupId>com.dataartisans</groupId>
   <artifactId>queryablestatedemo</artifactId>
-  <version>1.0-SNAPSHOT</version>
+  <version>1.0</version>
   <packaging>jar</packaging>
 
   <name>Flink Quickstart Job</name>
@@ -31,7 +31,7 @@ under the License.
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <flink.version>1.2.0</flink.version>
+    <flink.version>1.6.0</flink.version>
     <slf4j.version>1.7.7</slf4j.version>
     <log4j.version>1.2.17</log4j.version>
   </properties>
@@ -83,12 +83,17 @@ under the License.
     </dependency>
     <dependency>
       <groupId>org.apache.flink</groupId>
-      <artifactId>flink-streaming-java_2.10</artifactId>
+      <artifactId>flink-streaming-java_2.11</artifactId>
       <version>${flink.version}</version>
     </dependency>
     <dependency>
       <groupId>org.apache.flink</groupId>
-      <artifactId>flink-clients_2.10</artifactId>
+      <artifactId>flink-clients_2.11</artifactId>
+      <version>${flink.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.flink</groupId>
+      <artifactId>flink-queryable-state-runtime_2.11</artifactId>
       <version>${flink.version}</version>
     </dependency>
     <dependency>
@@ -124,15 +129,20 @@ under the License.
         </dependency>
         <dependency>
           <groupId>org.apache.flink</groupId>
-          <artifactId>flink-streaming-java_2.10</artifactId>
+          <artifactId>flink-streaming-java_2.11</artifactId>
           <version>${flink.version}</version>
           <scope>provided</scope>
         </dependency>
         <dependency>
           <groupId>org.apache.flink</groupId>
-          <artifactId>flink-clients_2.10</artifactId>
+          <artifactId>flink-clients_2.11</artifactId>
           <version>${flink.version}</version>
           <scope>provided</scope>
+        </dependency>
+        <dependency>
+          <groupId>org.apache.flink</groupId>
+          <artifactId>flink-queryable-state-runtime_2.11</artifactId>
+          <version>${flink.version}</version>
         </dependency>
         <dependency>
           <groupId>org.slf4j</groupId>

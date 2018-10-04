@@ -19,83 +19,89 @@
 package com.dataartisans.queryablestatedemo;
 
 import java.io.PrintWriter;
-import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
+
 import jline.console.ConsoleReader;
+import org.apache.flink.api.common.ExecutionConfig;
 import org.apache.flink.api.common.JobID;
-import org.apache.flink.api.common.time.Time;
-import org.apache.flink.api.common.typeutils.base.LongSerializer;
-import org.apache.flink.api.common.typeutils.base.StringSerializer;
+import org.apache.flink.api.common.state.FoldingState;
+import org.apache.flink.api.common.state.FoldingStateDescriptor;
+import org.apache.flink.queryablestate.client.QueryableStateClient;
+import org.apache.flink.api.common.typeinfo.BasicTypeInfo;
 
 public class EventCountClient {
 
-  public static void main(String[] args) throws Exception {
-    if (args.length == 0) {
-      throw new IllegalArgumentException("Missing required job ID argument. "
-          + "Usage: ./EventCountClient <jobID> [jobManagerHost] [jobManagerPort]");
-    }
-    String jobIdParam = args[0];
+	public static void main(String[] args) throws Exception {
+		if (args.length == 0) {
+			throw new IllegalArgumentException("Missing required job ID argument. "
+					+ "Usage: ./EventCountClient <jobID>");
+		}
+		String jobIdParam = args[0];
 
-    // Configuration
-    final String jobManagerHost = args.length > 1 ? args[1] : "localhost";
-    final int jobManagerPort = args.length > 1 ? Integer.parseInt(args[1]) : 6124;
+		// configuration
+		final JobID jobId = JobID.fromHexString(jobIdParam);
+		final String jobManagerHost = "localhost";
+		final int jobManagerPort = 9069;
 
-    System.out.println("Using JobManager " + jobManagerHost + ":" + jobManagerPort);
+		QueryableStateClient client = new QueryableStateClient(jobManagerHost, jobManagerPort);
+		client.setExecutionConfig(new ExecutionConfig());
 
-    final JobID jobId = JobID.fromHexString(jobIdParam);
+		// state descriptor for the state to be fetched
+		FoldingStateDescriptor<BumpEvent, Long> countingState = new FoldingStateDescriptor<>(
+				EventCountJob.ITEM_COUNTS,
+				0L,             // Initial value is 0
+				(acc, event) -> acc + 1L, // Increment for each event
+				Long.class);
 
-    final StringSerializer keySerializer = StringSerializer.INSTANCE;
-    final LongSerializer valueSerializer = LongSerializer.INSTANCE;
+		System.out.println("Using JobManager " + jobManagerHost + ":" + jobManagerPort);
+		printUsage();
 
-    final Time queryTimeout = Time.seconds(5);
+		ConsoleReader reader = new ConsoleReader();
+		reader.setPrompt("$ ");
+		PrintWriter out = new PrintWriter(reader.getOutput());
 
-    try (
-        // This helper is for convenience and not part of Flink
-        QueryClientHelper<String, Long> client = new QueryClientHelper<>(
-            jobManagerHost,
-            jobManagerPort,
-            jobId,
-            keySerializer,
-            valueSerializer,
-            queryTimeout)) {
+		String line;
+		while ((line = reader.readLine()) != null) {
+			String key = line.toLowerCase().trim();
+			out.printf("[info] Querying key '%s'\n", key);
 
-      printUsage();
+			try {
+				long start = System.currentTimeMillis();
 
-      ConsoleReader reader = new ConsoleReader();
-      reader.setPrompt("$ ");
+				CompletableFuture<FoldingState<BumpEvent, Long>> resultFuture =
+						client.getKvState(jobId, EventCountJob.ITEM_COUNTS, key, BasicTypeInfo.STRING_TYPE_INFO, countingState);
 
-      PrintWriter out = new PrintWriter(reader.getOutput());
+				resultFuture.thenAccept(response -> {
+					try {
+						Long count = response.get();
+						long end = System.currentTimeMillis();
+						long duration = Math.max(0, end - start);
 
-      String line;
-      while ((line = reader.readLine()) != null) {
-        String key = line.toLowerCase().trim();
-        out.printf("[info] Querying key '%s'\n", key);
+						if (count != null) {
+							out.printf("%d (query took %d ms)\n", count, duration);
+						} else {
+							out.printf("Unknown key %s (query took %d ms)\n", key, duration);
+						}
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+				});
 
-        try {
-          long start = System.currentTimeMillis();
-          Optional<Long> count = client.queryState(EventCountJob.ITEM_COUNTS, key);
-          long end = System.currentTimeMillis();
+				resultFuture.get(5, TimeUnit.SECONDS);
 
-          long duration = Math.max(0, end - start);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+	}
 
-          if (count.isPresent()) {
-            out.printf("%d (query took %d ms)\n", count.get(), duration);
-          } else {
-            out.printf("Unknown key %s (query took %d ms)\n", key, duration);
-          }
-        } catch (Exception e) {
-          out.println("Query failed because of the following Exception:");
-          e.printStackTrace(out);
-        }
-      }
-    }
-  }
-
-  private static void printUsage() {
-    System.out.println("Enter a key to query.");
-    System.out.println();
-    System.out.println("The EventCountJob " + EventCountJob.ITEM_COUNTS + " state instance "
-        + "has String keys that are three characters long and alphanumeric, e.g. 'AP2' or 'LOL'.");
-    System.out.println();
-  }
+	private static void printUsage() {
+		System.out.println("Enter a key to query.");
+		System.out.println();
+		System.out.println("The EventCountJob " + EventCountJob.ITEM_COUNTS + " state instance "
+				+ "has String keys that are three characters long and alphanumeric, e.g. 'AP2' or 'LOL'.");
+		System.out.println();
+	}
 
 }
